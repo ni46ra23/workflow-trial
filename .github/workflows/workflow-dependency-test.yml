@@ -48,7 +48,7 @@ jobs:
             MODULE="${{ inputs.module }}"
           else
             ENV=dev
-            MODULE=func2
+            MODULE=all
           fi
 
           echo "env=${ENV}" >> "${GITHUB_OUTPUT}"
@@ -59,10 +59,8 @@ jobs:
     name: Module common
     needs: [config]
     if: >-
-      ${{
-        !cancelled()
-        && contains(fromJSON('["all", "common"]'), needs.config.outputs.module)
-      }}
+      !cancelled()
+      && contains(fromJSON('["all", "common"]'), needs.config.outputs.module)
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
@@ -75,11 +73,9 @@ jobs:
     name: Module func1
     needs: [config, module-common]
     if: >-
-      ${{
-        !cancelled()
-        && contains(fromJSON('["all", "func1"]'), needs.config.outputs.module)
-        && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
-      }}
+      !cancelled()
+      && contains(fromJSON('["all", "func1"]'), needs.config.outputs.module)
+      && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
@@ -92,11 +88,9 @@ jobs:
     name: Module func2
     needs: [config, module-common]
     if: >-
-      ${{
-        !cancelled()
-        && contains(fromJSON('["all", "func2"]'), needs.config.outputs.module)
-        && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
-      }}
+      !cancelled()
+      && contains(fromJSON('["all", "func2"]'), needs.config.outputs.module)
+      && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
