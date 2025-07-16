@@ -4,17 +4,33 @@ on:
   push:
   workflow_dispatch:
     inputs:
-      module:
-        description: 'Target module'
+      env:
+        description: 'Target Environment'
         required: true
-        type: string
-        default: 'all'
+        type: choice
+        default: dev
+        options:
+          - dev
+          - stg
+          - prd
+      module:
+        description: 'Target Module'
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - func1
+          - func2
+
+run-name: "${{ github.event_name == 'workflow_dispatch' && format('Deploy {0} {1}', inputs.env, inputs.module) || format('Push: {0}', github.event.head_commit.message) }}"
 
 jobs:
   config:
     name: Load configuration
     runs-on: ubuntu-latest
     outputs:
+      env: ${{ steps.load.outputs.env }}
       module: ${{ steps.load.outputs.module }}
     steps:
       - name: Load config
@@ -22,11 +38,14 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENV="${{ inputs.env }}"
             MODULE="${{ inputs.module }}"
           else
+            ENV=dev
             MODULE=all
           fi
 
+          echo "env=${ENV}" >> "${GITHUB_OUTPUT}"
           echo "module=${MODULE}" >> "${GITHUB_OUTPUT}"
           cat "${GITHUB_OUTPUT}"    
 
@@ -40,6 +59,7 @@ jobs:
       - name: Display parameters
         shell: bash
         run: |
+          echo "env=${{ needs.config.outputs.env }}"
           echo "module=${{ needs.config.outputs.module }}"
 
   module-func1:
@@ -53,6 +73,7 @@ jobs:
       - name: Display parameters
         shell: bash
         run: |
+          echo "env=${{ needs.config.outputs.env }}"
           echo "module=${{ needs.config.outputs.module }}"
 
   module-func2:
@@ -66,4 +87,5 @@ jobs:
       - name: Display parameters
         shell: bash
         run: |
+          echo "env=${{ needs.config.outputs.env }}"
           echo "module=${{ needs.config.outputs.module }}"
