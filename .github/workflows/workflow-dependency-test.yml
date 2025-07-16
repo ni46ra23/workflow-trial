@@ -53,7 +53,7 @@ jobs:
   module-common:
     name: Module common
     needs: [config]
-    if: ${{ !cancelled() && !failure() }}
+    if: !cancelled()
       && contains(fromJSON('["all", "common"]'), needs.config.outputs.module)
     runs-on: ubuntu-latest
     steps:
@@ -66,7 +66,7 @@ jobs:
   module-func1:
     name: Module func1
     needs: [config, module-common]
-    if: ${{ !cancelled() && !failure() }}
+    if: !cancelled()
       && contains(fromJSON('["all", "func1"]'), needs.config.outputs.module)
       && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
   module-func2:
     name: Module func2
     needs: [config, module-common]
-    if: ${{ !cancelled() && !failure() }}
+    if: !cancelled()
       && contains(fromJSON('["all", "func2"]'), needs.config.outputs.module)
       && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
     runs-on: ubuntu-latest
