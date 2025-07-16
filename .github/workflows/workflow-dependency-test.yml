@@ -24,7 +24,12 @@ on:
           - func1
           - func2
 
-run-name: "${{ github.event_name == 'workflow_dispatch' && format('Deploy {0} {1}', inputs.env, inputs.module) || format('Push: {0}', github.event.head_commit.message) }}"
+run-name: >-
+  ${{
+    github.event_name == 'workflow_dispatch'
+    && format('Deploy: {0} {1}', inputs.env, inputs.module)
+    || format('Push: {0}', github.event.head_commit.message)
+  }}
 
 jobs:
   config:
@@ -43,7 +48,7 @@ jobs:
             MODULE="${{ inputs.module }}"
           else
             ENV=dev
-            MODULE=all
+            MODULE=func2
           fi
 
           echo "env=${ENV}" >> "${GITHUB_OUTPUT}"
@@ -53,8 +58,11 @@ jobs:
   module-common:
     name: Module common
     needs: [config]
-    if: ${{ !cancelled() && !failure() }}
-      && contains(fromJSON('["all", "common"]'), needs.config.outputs.module)
+    if: >-
+      ${{
+        !cancelled()
+        && contains(fromJSON('["all", "common"]'), needs.config.outputs.module)
+      }}
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
@@ -66,9 +74,12 @@ jobs:
   module-func1:
     name: Module func1
     needs: [config, module-common]
-    if: ${{ !cancelled() && !failure() }}
-      && contains(fromJSON('["all", "func1"]'), needs.config.outputs.module)
-      && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
+    if: >-
+      ${{
+        !cancelled()
+        && contains(fromJSON('["all", "func1"]'), needs.config.outputs.module)
+        && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
+      }}
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
@@ -80,9 +91,12 @@ jobs:
   module-func2:
     name: Module func2
     needs: [config, module-common]
-    if: ${{ !cancelled() && !failure() }}
-      && contains(fromJSON('["all", "func2"]'), needs.config.outputs.module)
-      && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
+    if: >-
+      ${{
+        !cancelled()
+        && contains(fromJSON('["all", "func2"]'), needs.config.outputs.module)
+        && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
+      }}
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
