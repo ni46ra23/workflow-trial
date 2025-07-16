@@ -1,0 +1,67 @@
+name: Dependency Test
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: 'Target module'
+        required: true
+        type: string
+        default: 'all'
+
+jobs:
+  config:
+    name: Load configuration
+    runs-on: ubuntu-latest
+    outputs:
+      module: ${{ steps.load.outputs.module }}
+    steps:
+      - name: Load config
+        id: load
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODULE="${{ inputs.module }}"
+          else
+            MODULE=all
+          fi
+
+          echo "module=${MODULE}" >> "${GITHUB_OUTPUT}"
+          cat "${GITHUB_OUTPUT}"    
+
+  module-common:
+    name: Module common
+    needs: [config]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display parameters
+        shell: bash
+        run: |
+          echo "module=${{ needs.config.outputs.module }}"
+
+  module-func1:
+    name: Module func1
+    needs: [config, module-common]
+    if: always()
+      && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
+      && contains(fromJSON('["all", "func1"]'), needs.config.outputs.module)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display parameters
+        shell: bash
+        run: |
+          echo "module=${{ needs.config.outputs.module }}"
+
+  module-func2:
+    name: Module func2
+    needs: [config, module-common]
+    if: always()
+      && contains(fromJSON('["success", "skipped"]'), needs.module-common.result)
+      && contains(fromJSON('["all", "func2"]'), needs.config.outputs.module)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display parameters
+        shell: bash
+        run: |
+          echo "module=${{ needs.config.outputs.module }}"
