@@ -24,7 +24,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             MODULE="${{ inputs.module }}"
           else
-            MODULE=all
+            MODULE=func1
           fi
 
           echo "module=${MODULE}" >> "${GITHUB_OUTPUT}"
@@ -33,6 +33,8 @@ jobs:
   module-common:
     name: Module common
     needs: [config]
+    if: always()
+      && contains(fromJSON('["all", "common"]'), needs.config.outputs.module)
     runs-on: ubuntu-latest
     steps:
       - name: Display parameters
