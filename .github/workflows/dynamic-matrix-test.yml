@@ -1,0 +1,40 @@
+name: Example Workflow
+
+on: [push]
+
+jobs:
+  # Job 1: 共通の準備（1 回だけ実行）
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix-data: ${{ steps.set-matrix.outputs.matrix }}  # matrix を動的に出力
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run preparation (step 1 equivalent)
+        run: |
+          echo "Running common preparation..."
+          # ここに step 1 の処理（例: ビルドやデータ生成）を記述
+          # 動的 matrix 生成例（JSON で出力）
+          echo "matrix=[{\"version\": 10}, {\"version\": 12}]" >> $GITHUB_OUTPUT
+
+      - name: Set matrix output
+        id: set-matrix
+        run: echo "matrix=$(cat $GITHUB_OUTPUT)"  # 実際には fromJSON などで扱う
+
+  # Job 2: matrix 並列実行（準備の出力を使用）
+  test:
+    needs: prepare  # prepare job が完了してから実行
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix-data) }}  # 動的 matrix
+    steps:
+      - name: Download artifact (if needed)
+        uses: actions/download-artifact@v4
+        # prepare で upload-artifact したファイルをダウンロード（共有データ用）
+
+      - name: Run matrix-specific step (step 2 equivalent)
+        run: |
+          echo "Running for version ${{ matrix.version }}..."
+          # ここに matrix 依存の処理（例: テスト実行）を記述
