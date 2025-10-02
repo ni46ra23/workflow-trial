@@ -17,7 +17,7 @@ jobs:
           echo "Running common preparation..."
           # ここに step 1 の処理（例: ビルドやデータ生成）を記述
           # 動的 matrix 生成例（JSON で出力）
-          echo "matrix=[{\"version\": 10}, {\"version\": 12}]" >> $GITHUB_OUTPUT
+          echo "matrix-data=[{\"version\": 10}, {\"version\": 12}]" >> $GITHUB_OUTPUT
 
       - name: Set matrix output
         id: set-matrix
