@@ -2,9 +2,6 @@ name: Dynamic Matrix Example
 
 on:
   push:
-    branches: [ main ]
-    tags:
-      - "v*"
 
 jobs:
   set-matrix:
