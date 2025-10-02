@@ -1,40 +1,40 @@
-name: Example Workflow
+name: Dynamic Matrix Example
 
-on: [push]
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - "v*"
 
 jobs:
-  # Job 1: 共通の準備（1 回だけ実行）
-  prepare:
+  set-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix-data: ${{ steps.set-matrix.outputs.matrix }}  # matrix を動的に出力
+      matrix: ${{ steps.set.outputs.matrix }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run preparation (step 1 equivalent)
+      - id: set
         run: |
-          echo "Running common preparation..."
-          # ここに step 1 の処理（例: ビルドやデータ生成）を記述
-          # 動的 matrix 生成例（JSON で出力）
-          echo "matrix-data=[{\"version\": 10}, {\"version\": 12}]" >> $GITHUB_OUTPUT
+          # デフォルトのマトリクス
+          MATRIX='{"os":["ubuntu-latest"],"node":["14","16"]}'
 
-      - name: Set matrix output
-        id: set-matrix
-        run: echo "matrix=$(cat $GITHUB_OUTPUT)"  # 実際には fromJSON などで扱う
+          # タグビルドなら Windows を追加
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            MATRIX='{"os":["ubuntu-latest","windows-latest"],"node":["14","16"]}'
+          fi
 
-  # Job 2: matrix 並列実行（準備の出力を使用）
-  test:
-    needs: prepare  # prepare job が完了してから実行
-    runs-on: ubuntu-latest
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  build:
+    needs: set-matrix
+    runs-on: ${{ matrix.os }}
     strategy:
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix-data) }}  # 動的 matrix
+      matrix: ${{ fromJSON(needs.set-matrix.outputs.matrix) }}
     steps:
-      - name: Download artifact (if needed)
-        uses: actions/download-artifact@v4
-        # prepare で upload-artifact したファイルをダウンロード（共有データ用）
+      - uses: actions/checkout@v4
 
-      - name: Run matrix-specific step (step 2 equivalent)
-        run: |
-          echo "Running for version ${{ matrix.version }}..."
-          # ここに matrix 依存の処理（例: テスト実行）を記述
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: node -v
