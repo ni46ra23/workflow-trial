@@ -11,12 +11,7 @@ jobs:
     steps:
       - id: set
         run: |
-          MATRIX='{
-            "include": [
-              { "os": "ubuntu-latest", "node": "14" },
-              { "os": "windows-latest", "node": "16" }
-            ]
-          }'
+          MATRIX='{ "include": [ { "os": "ubuntu-latest", "node": "14" }, { "os": "windows-latest", "node": "16" } ] }'
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
   build:
